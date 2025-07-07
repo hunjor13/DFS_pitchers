@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Pitchers to Stack Against - Daily Update</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #ff4444;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .update-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .update-button {
+            background: #ff4444;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .update-button:hover {
+            background: #ff6666;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+        }
+        
+        .update-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .last-update {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .manual-update {
+            margin-top: 20px;
+            padding: 15px;
+            background: #222;
+            border-radius: 6px;
+        }
+        
+        .manual-update textarea {
+            width: 100%;
+            min-height: 100px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        th {
+            background: #1a1a1a;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #ff4444;
+            border-bottom: 2px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th:hover {
+            background: #222;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #222;
+        }
+        
+        tr:hover {
+            background: #1a1a1a;
+        }
+        
+        .target {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff6666;
+            font-weight: 600;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+        
+        .good {
+            background: rgba(68, 255, 68, 0.2);
+            color: #66ff66;
+        }
+        
+        .name-cell {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .team-cell {
+            color: #888;
+        }
+        
+        .target-count {
+            background: #ff4444;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .legend {
+            margin: 20px 0;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .stats-summary {
+            margin: 20px 0;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .summary-item {
+            background: #222;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        
+        .summary-label {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .summary-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #ff4444;
+        }
+        
+        .error-message {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff6666;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #888;
+            margin: 20px 0;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Top Pitchers to Stack Against</h1>
+        <p class="subtitle">Identifying vulnerable pitchers based on key performance metrics</p>
+        
+        <div class="update-section">
+            <h3>Data Update</h3>
+            <button class="update-button" onclick="fetchFanGraphsData()">Fetch Today's Data</button>
+            <div class="last-update" id="lastUpdate">Last update: Never</div>
+            <div class="loading" id="loading">Fetching data from FanGraphs</div>
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="manual-update">
+                <h4>Manual Data Update</h4>
+                <p style="color: #888; font-size: 0.9em;">
+                    Due to CORS restrictions, automatic fetching may not work. You can manually update data by:
+                </p>
+                <ol style="text-align: left; color: #aaa; font-size: 0.9em;">
+                    <li>Visit the <a href="#" id="fangraphsLink" target="_blank" style="color: #ff4444;">FanGraphs page</a></li>
+                    <li>Copy all the data from the table (Ctrl+A, Ctrl+C)</li>
+                    <li>Paste it here:</li>
+                </ol>
+                <textarea id="pasteData" placeholder="Paste FanGraphs data here..."></textarea>
+                <button class="update-button" onclick="processManualData()">Process Pasted Data</button>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box target"></div>
+                <span>Target (Poor Performance)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box good"></div>
+                <span>Good (Strong Performance)</span>
+            </div>
+        </div>
+        
+        <div class="stats-summary">
+            <h3>Quick Stats</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Total Pitchers</div>
+                    <div class="summary-value" id="totalPitchers">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Most Targetable</div>
+                    <div class="summary-value" id="mostTargetable">-</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Avg Target Metrics</div>
+                    <div class="summary-value" id="avgTargets">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">High ERA Count</div>
+                    <div class="summary-value" id="highERA">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label>Min IP</label>
+                <input type="number" id="minIP" value="20" step="10">
+            </div>
+            <div class="filter-group">
+                <label>Team</label>
+                <select id="teamFilter">
+                    <option value="">All Teams</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Min Target Metrics</label>
+                <input type="number" id="minTargets" value="0" min="0" max="10">
+            </div>
+        </div>
+        
+        <table id="pitcherTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">#</th>
+                    <th onclick="sortTable(1)">Name</th>
+                    <th onclick="sortTable(2)">Team</th>
+                    <th onclick="sortTable(3)">IP</th>
+                    <th onclick="sortTable(4)">QS</th>
+                    <th onclick="sortTable(5)">K%</th>
+                    <th onclick="sortTable(6)">K/9</th>
+                    <th onclick="sortTable(7)">BB/9</th>
+                    <th onclick="sortTable(8)">K/BB</th>
+                    <th onclick="sortTable(9)">xERA</th>
+                    <th onclick="sortTable(10)">ERA</th>
+                    <th onclick="sortTable(11)">BB%</th>
+                    <th onclick="sortTable(12)">WHIP</th>
+                    <th onclick="sortTable(13)">BABIP</th>
+                    <th onclick="sortTable(14)">FIP</th>
+                    <th onclick="sortTable(15)">Hard%</th>
+                    <th onclick="sortTable(16)">HR/9</th>
+                    <th onclick="sortTable(17)">Barrel%</th>
+                    <th onclick="sortTable(18)">Target Count</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        // Global pitcher data array
+        let pitcherData = [];
+        
+        // Target thresholds for identifying vulnerable pitchers
+        const targetThresholds = {
+            kPct: 20,      // Low K% (below 20%)
+            k9: 7,         // Low K/9 (below 7)
+            kbb: 2.5,      // Low K/BB ratio (below 2.5)
+            xera: 4.5,     // High xERA (above 4.5)
+            era: 4.5,      // High ERA (above 4.5)
+            whip: 1.35,    // High WHIP (above 1.35)
+            fip: 4.5,      // High FIP (above 4.5)
+            hardPct: 35,   // High Hard% (above 35%)
+            hr9: 1.5,      // High HR/9 (above 1.5)
+            barrelPct: 10  // High Barrel% (above 10%)
+        };
+        
+        let sortColumn = 18; // Default sort by target count
+        let sortDirection = -1;
+        
+        // Update FanGraphs link with today's date
+        function updateFanGraphsLink() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            const url = `https://www.fangraphs.com/leaders/major-league?pos=all&stats=pit&lg=all&qual=0&type=c%2C13%2C421%2C120%2C36%2C37%2C38%2C332%2C6%2C121%2C42%2C43%2C45%2C62%2C47%2C48%2C49%2C223%2C40%2C326%2C329%2C51%2C63%2C325&month=0&ind=0&team=0&rost=0&age=0&filter=&players=p${dateStr}&sortcol=7&sortdir=default&pageitems=2000000000&startdate=&enddate=&season1=${year}&season=${year}&v_cr=202301&pagenum=1`;
+            
+            document.getElementById('fangraphsLink').href = url;
+            return url;
+        }
+        
+        // Attempt to fetch data from FanGraphs (may fail due to CORS)
+        async function fetchFanGraphsData() {
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            const button = document.querySelector('.update-button');
+            
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            button.disabled = true;
+            
+            try {
+                const url = updateFanGraphsLink();
+                
+                // This will likely fail due to CORS
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+                
+                const html = await response.text();
+                parseFanGraphsHTML(html);
+                
+                updateLastUpdateTime();
+                loading.style.display = 'none';
+                button.disabled = false;
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                button.disabled = false;
+                
+                errorMessage.innerHTML = `
+                    <strong>Unable to fetch data automatically due to CORS restrictions.</strong><br>
+                    Please use the manual update method below to update the data.
+                `;
+                errorMessage.style.display = 'block';
+            }
+        }
+        
+        // Process manually pasted data
+        function processManualData() {
+            const pasteData = document.getElementById('pasteData').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (!pasteData.trim()) {
+                errorMessage.textContent = 'Please paste data before processing.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                parseClipboardData(pasteData);
+                errorMessage.style.display = 'none';
+                document.getElementById('pasteData').value = '';
+                updateLastUpdateTime();
+            } catch (error) {
+                errorMessage.textContent = 'Error processing data. Please make sure you copied the entire table.';
+                errorMessage.style.display = 'block';
+            }
+        }
+        
+        // Parse clipboard data from FanGraphs
+        function parseClipboardData(data) {
+            const lines = data.trim().split('\n').filter(line => line.trim());
+            
+            // Skip header lines and find where data starts
+            let dataStartIndex = 0;
+            for (let i = 0; i < lines.length; i++) {
+                // Look for a line that starts with a number (ranking)
+                if (/^\d+\s/.test(lines[i])) {
+                    dataStartIndex = i;
+                    break;
+                }
+            }
+            
+            pitcherData = [];
+            
+            for (let i = dataStartIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Split by tabs or multiple spaces
+                const parts = line.split(/\t+|\s{2,}/);
+                
+                // Expected format: Rank, Name, Team, IP, QS, K%, K/9, BB/9, K/BB, xERA, ERA, BB%, WHIP, BABIP, FIP, xFIP, LD%, GB%, FB%, Hard%, HR/9, maxEV, Events, HR/FB, WPA, Barrel%
+                if (parts.length >= 20) {
+                    const pitcher = {
+                        rank: parseInt(parts[0]) || 0,
+                        name: parts[1],
+                        team: parts[2],
+                        ip: parseFloat(parts[3]) || 0,
+                        qs: parseInt(parts[4]) || 0,
+                        kPct: parseFloat(parts[5]?.replace('%', '')) || 0,
+                        k9: parseFloat(parts[6]) || 0,
+                        bb9: parseFloat(parts[7]) || 0,
+                        kbb: parseFloat(parts[8]) || 0,
+                        xera: parseFloat(parts[9]) || 0,
+                        era: parseFloat(parts[10]) || 0,
+                        bbPct: parseFloat(parts[11]?.replace('%', '')) || 0,
+                        whip: parseFloat(parts[12]) || 0,
+                        babip: parseFloat(parts[13]) || 0,
+                        fip: parseFloat(parts[14]) || 0,
+                        // Skip some columns to get to the ones we need
+                        hardPct: parseFloat(parts[19]?.replace('%', '')) || 0,
+                        hr9: parseFloat(parts[20]) || 0,
+                        barrelPct: parseFloat(parts[25]?.replace('%', '')) || 0
+                    };
+                    
+                    // Only add if we have valid data
+                    if (pitcher.name && pitcher.team && pitcher.ip > 0) {
+                        pitcherData.push(pitcher);
+                    }
+                }
+            }
+            
+            if (pitcherData.length > 0) {
+                populateTeamFilter();
+                renderTable();
+                saveDataToLocalStorage();
+            } else {
+                throw new Error('No valid data found');
+            }
+        }
+        
+        // Save data to localStorage
+        function saveDataToLocalStorage() {
+            const dataToSave = {
+                pitcherData: pitcherData,
+                lastUpdate: new Date().toISOString()
+            };
+            localStorage.setItem('pitcherStackData', JSON.stringify(dataToSave));
+        }
+        
+        // Load data from localStorage
+        function loadDataFromLocalStorage() {
+            const saved = localStorage.getItem('pitcherStackData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                pitcherData = data.pitcherData || [];
+                if (data.lastUpdate) {
+                    const date = new Date(data.lastUpdate);
+                    document.getElementById('lastUpdate').textContent = 
+                        `Last update: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                }
+                return true;
+            }
+            return false;
+        }
+        
+        // Update last update time display
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Last update: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+        }
+        
+        function calculateTargetMetrics(pitcher) {
+            let targetCount = 0;
+            
+            if (pitcher.kPct < targetThresholds.kPct) targetCount++;
+            if (pitcher.k9 < targetThresholds.k9) targetCount++;
+            if (pitcher.kbb < targetThresholds.kbb) targetCount++;
+            if (pitcher.xera > targetThresholds.xera) targetCount++;
+            if (pitcher.era > targetThresholds.era) targetCount++;
+            if (pitcher.whip > targetThresholds.whip) targetCount++;
+            if (pitcher.fip > targetThresholds.fip) targetCount++;
+            if (pitcher.hardPct > targetThresholds.hardPct) targetCount++;
+            if (pitcher.hr9 > targetThresholds.hr9) targetCount++;
+            if (pitcher.barrelPct > targetThresholds.barrelPct) targetCount++;
+            
+            return targetCount;
+        }
+        
+        function formatValue(value, decimals = 2) {
+            if (value === null || value === undefined) return '-';
+            if (typeof value === 'number') {
+                return value.toFixed(decimals);
+            }
+            return value;
+        }
+        
+        function getCellClass(stat, value) {
+            switch(stat) {
+                case 'kPct':
+                    return value < targetThresholds.kPct ? 'target' : (value > 28 ? 'good' : '');
+                case 'k9':
+                    return value < targetThresholds.k9 ? 'target' : (value > 10 ? 'good' : '');
+                case 'kbb':
+                    return value < targetThresholds.kbb ? 'target' : (value > 4 ? 'good' : '');
+                case 'xera':
+                case 'era':
+                    return value > targetThresholds[stat] ? 'target' : (value < 3 ? 'good' : '');
+                case 'whip':
+                    return value > targetThresholds.whip ? 'target' : (value < 1.1 ? 'good' : '');
+                case 'fip':
+                    return value > targetThresholds.fip ? 'target' : (value < 3.5 ? 'good' : '');
+                case 'hardPct':
+                    return value > targetThresholds.hardPct ? 'target' : (value < 28 ? 'good' : '');
+                case 'hr9':
+                    return value > targetThresholds.hr9 ? 'target' : (value < 0.8 ? 'good' : '');
+                case 'barrelPct':
+                    return value > targetThresholds.barrelPct ? 'target' : (value < 6 ? 'good' : '');
+                default:
+                    return '';
+            }
+        }
+        
+        function populateTeamFilter() {
+            const teams = [...new Set(pitcherData.map(p => p.team))].sort();
+            const teamFilter = document.getElementById('teamFilter');
+            
+            // Clear existing options except "All Teams"
+            teamFilter.innerHTML = '<option value="">All Teams</option>';
+            
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                teamFilter.appendChild(option);
+            });
+        }
+        
+        function updateStats() {
+            const filteredData = getFilteredData();
+            
+            document.getElementById('totalPitchers').textContent = filteredData.length;
+            
+            const targetCounts = filteredData.map(p => calculateTargetMetrics(p));
+            const avgTargets = targetCounts.reduce((a, b) => a + b, 0) / targetCounts.length || 0;
+            document.getElementById('avgTargets').textContent = avgTargets.toFixed(1);
+            
+            const highERA = filteredData.filter(p => p.era > 4.5).length;
+            document.getElementById('highERA').textContent = highERA;
+            
+            const mostTargetable = filteredData.reduce((best, pitcher) => {
+                const targetCount = calculateTargetMetrics(pitcher);
+                return targetCount > calculateTargetMetrics(best) ? pitcher : best;
+            }, filteredData[0] || {});
+            
+            document.getElementById('mostTargetable').textContent = mostTargetable.name || '-';
+        }
+        
+        function getFilteredData() {
+            const minIP = parseFloat(document.getElementById('minIP').value) || 0;
+            const teamFilter = document.getElementById('teamFilter').value;
+            const minTargets = parseInt(document.getElementById('minTargets').value) || 0;
+            
+            return pitcherData.filter(pitcher => {
+                if (pitcher.ip < minIP) return false;
+                if (teamFilter && pitcher.team !== teamFilter) return false;
+                if (calculateTargetMetrics(pitcher) < minTargets) return false;
+                return true;
+            });
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            const filteredData = getFilteredData();
+            
+            // Sort data
+            const sortedData = [...filteredData].sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortColumn) {
+                    case 0: aVal = a.rank; bVal = b.rank; break;
+                    case 1: aVal = a.name; bVal = b.name; break;
+                    case 2: aVal = a.team; bVal = b.team; break;
+                    case 3: aVal = a.ip; bVal = b.ip; break;
+                    case 4: aVal = a.qs; bVal = b.qs; break;
+                    case 5: aVal = a.kPct; bVal = b.kPct; break;
+                    case 6: aVal = a.k9; bVal = b.k9; break;
+                    case 7: aVal = a.bb9; bVal = b.bb9; break;
+                    case 8: aVal = a.kbb; bVal = b.kbb; break;
+                    case 9: aVal = a.xera; bVal = b.xera; break;
+                    case 10: aVal = a.era; bVal = b.era; break;
+                    case 11: aVal = a.bbPct; bVal = b.bbPct; break;
+                    case 12: aVal = a.whip; bVal = b.whip; break;
+                    case 13: aVal = a.babip; bVal = b.babip; break;
+                    case 14: aVal = a.fip; bVal = b.fip; break;
+                    case 15: aVal = a.hardPct; bVal = b.hardPct; break;
+                    case 16: aVal = a.hr9; bVal = b.hr9; break;
+                    case 17: aVal = a.barrelPct; bVal = b.barrelPct; break;
+                    case 18: aVal = calculateTargetMetrics(a); bVal = calculateTargetMetrics(b); break;
+                }
+                
+                if (typeof aVal === 'string') {
+                    return sortDirection * aVal.localeCompare(bVal);
+                }
+                return sortDirection * (aVal - bVal);
+            });
+            
+            sortedData.forEach(pitcher => {
+                const targetCount = calculateTargetMetrics(pitcher);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${pitcher.rank}</td>
+                    <td class="name-cell">${pitcher.name}</td>
+                    <td class="team-cell">${pitcher.team}</td>
+                    <td>${formatValue(pitcher.ip, 1)}</td>
+                    <td>${pitcher.qs}</td>
+                    <td class="${getCellClass('kPct', pitcher.kPct)}">${formatValue(pitcher.kPct, 1)}%</td>
+                    <td class="${getCellClass('k9', pitcher.k9)}">${formatValue(pitcher.k9)}</td>
+                    <td>${formatValue(pitcher.bb9)}</td>
+                    <td class="${getCellClass('kbb', pitcher.kbb)}">${formatValue(pitcher.kbb)}</td>
+                    <td class="${getCellClass('xera', pitcher.xera)}">${formatValue(pitcher.xera)}</td>
+                    <td class="${getCellClass('era', pitcher.era)}">${formatValue(pitcher.era)}</td>
+                    <td>${formatValue(pitcher.bbPct, 1)}%</td>
+                    <td class="${getCellClass('whip', pitcher.whip)}">${formatValue(pitcher.whip)}</td>
+                    <td>${formatValue(pitcher.babip, 3)}</td>
+                    <td class="${getCellClass('fip', pitcher.fip)}">${formatValue(pitcher.fip)}</td>
+                    <td class="${getCellClass('hardPct', pitcher.hardPct)}">${formatValue(pitcher.hardPct, 1)}%</td>
+                    <td class="${getCellClass('hr9', pitcher.hr9)}">${formatValue(pitcher.hr9)}</td>
+                    <td class="${getCellClass('barrelPct', pitcher.barrelPct)}">${formatValue(pitcher.barrelPct, 1)}%</td>
+                    <td><span class="target-count">${targetCount}</span></td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            updateStats();
+        }
+        
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection *= -1;
+            } else {
+                sortColumn = column;
+                sortDirection = column === 1 || column === 2 ? 1 : -1;
+            }
+            renderTable();
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFanGraphsLink();
+            
+            // Try to load saved data
+            if (loadDataFromLocalStorage() && pitcherData.length > 0) {
+                populateTeamFilter();
+                renderTable();
+            }
+            
+            // Event listeners
+            document.getElementById('minIP').addEventListener('change', renderTable);
+            document.getElementById('teamFilter').addEventListener('change', renderTable);
+            document.getElementById('minTargets').addEventListener('change', renderTable);
+        });
+        
+        // Optional: Set up automatic daily updates (requires the page to be open)
+        function scheduleDailyUpdate() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(6, 0, 0, 0); // Update at 6 AM
+            
+            const msUntilUpdate = tomorrow - now;
+            
+            setTimeout(() => {
+                fetchFanGraphsData();
+                scheduleDailyUpdate(); // Schedule next update
+            }, msUntilUpdate);
+        }
+        
+        // Uncomment to enable automatic daily updates
+        // scheduleDailyUpdate();
+    </script>
+</body>
+</html>
