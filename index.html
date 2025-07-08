@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Pitchers to Stack Against - Daily Update</title>
+    <title>MLB Pitcher Stack & Regression Tracker</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -14,7 +14,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         
@@ -31,6 +31,45 @@
             color: #888;
             margin-bottom: 20px;
             font-size: 1.1em;
+        }
+        
+        .tab-container {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+        }
+        
+        .tab {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-bottom: none;
+            padding: 12px 24px;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #ff4444;
+            color: #000;
+            font-weight: 600;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #222;
+            color: #fff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .update-section {
@@ -127,11 +166,12 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            font-size: 13px;
         }
         
         th {
             background: #1a1a1a;
-            padding: 12px 8px;
+            padding: 10px 6px;
             text-align: left;
             font-weight: 600;
             color: #ff4444;
@@ -141,6 +181,7 @@
             z-index: 10;
             cursor: pointer;
             user-select: none;
+            font-size: 11px;
         }
         
         th:hover {
@@ -148,7 +189,7 @@
         }
         
         td {
-            padding: 10px 8px;
+            padding: 8px 6px;
             border-bottom: 1px solid #222;
         }
         
@@ -169,6 +210,14 @@
             color: #66ff66;
         }
         
+        .regression-risk {
+            background: rgba(255, 165, 0, 0.3);
+            color: #ffaa44;
+            font-weight: 600;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+        
         .name-cell {
             font-weight: 600;
             color: #fff;
@@ -178,13 +227,40 @@
             color: #888;
         }
         
-        .target-count {
+        .target-count, .regression-score {
             background: #ff4444;
             color: #000;
             padding: 4px 8px;
             border-radius: 4px;
             font-weight: 700;
             text-align: center;
+        }
+        
+        .regression-score {
+            background: #ffaa44;
+        }
+        
+        .confidence-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .confidence-high {
+            background: #ff4444;
+            color: #000;
+        }
+        
+        .confidence-medium {
+            background: #ffaa44;
+            color: #000;
+        }
+        
+        .confidence-low {
+            background: #666;
+            color: #fff;
         }
         
         .legend {
@@ -263,6 +339,45 @@
             animation: dots 1.5s infinite;
         }
         
+        .regression-explanation {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .regression-explanation h3 {
+            color: #ffaa44;
+            margin-top: 0;
+        }
+        
+        .regression-factors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .factor-card {
+            background: #222;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        
+        .factor-title {
+            color: #ffaa44;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .factor-description {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
         @keyframes dots {
             0%, 20% { content: '.'; }
             40% { content: '..'; }
@@ -272,8 +387,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Top Pitchers to Stack Against</h1>
-        <p class="subtitle">Identifying vulnerable pitchers based on key performance metrics</p>
+        <h1>⚾ MLB Pitcher Analysis Hub</h1>
+        <p class="subtitle">Stack Targets & Regression Candidates with Advanced Metrics</p>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('stack')">🎯 Stack Targets</div>
+                <div class="tab" onclick="switchTab('regression')">📉 Regression Candidates</div>
+                <div class="tab" onclick="switchTab('methodology')">📊 Methodology</div>
+            </div>
+        </div>
         
         <div class="update-section">
             <h3>Data Update</h3>
@@ -297,83 +420,243 @@
             </div>
         </div>
         
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-box target"></div>
-                <span>Target (Poor Performance)</span>
+        <!-- Stack Targets Tab -->
+        <div id="stack-content" class="tab-content active">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box target"></div>
+                    <span>Target (Poor Performance)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box good"></div>
+                    <span>Good (Strong Performance)</span>
+                </div>
             </div>
-            <div class="legend-item">
-                <div class="legend-box good"></div>
-                <span>Good (Strong Performance)</span>
+            
+            <div class="stats-summary">
+                <h3>Stack Analysis</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">Total Pitchers</div>
+                        <div class="summary-value" id="totalPitchers">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Most Targetable</div>
+                        <div class="summary-value" id="mostTargetable">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Target Metrics</div>
+                        <div class="summary-value" id="avgTargets">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">High ERA Count</div>
+                        <div class="summary-value" id="highERA">0</div>
+                    </div>
+                </div>
             </div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Min IP</label>
+                    <input type="number" id="minIP" value="20" step="10">
+                </div>
+                <div class="filter-group">
+                    <label>Team</label>
+                    <select id="teamFilter">
+                        <option value="">All Teams</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Min Target Metrics</label>
+                    <input type="number" id="minTargets" value="0" min="0" max="10">
+                </div>
+            </div>
+            
+            <table id="pitcherTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">#</th>
+                        <th onclick="sortTable(1)">Name</th>
+                        <th onclick="sortTable(2)">Team</th>
+                        <th onclick="sortTable(3)">IP</th>
+                        <th onclick="sortTable(4)">QS</th>
+                        <th onclick="sortTable(5)">K%</th>
+                        <th onclick="sortTable(6)">K/9</th>
+                        <th onclick="sortTable(7)">BB/9</th>
+                        <th onclick="sortTable(8)">K/BB</th>
+                        <th onclick="sortTable(9)">xERA</th>
+                        <th onclick="sortTable(10)">ERA</th>
+                        <th onclick="sortTable(11)">BB%</th>
+                        <th onclick="sortTable(12)">WHIP</th>
+                        <th onclick="sortTable(13)">BABIP</th>
+                        <th onclick="sortTable(14)">FIP</th>
+                        <th onclick="sortTable(15)">Hard%</th>
+                        <th onclick="sortTable(16)">HR/9</th>
+                        <th onclick="sortTable(17)">Barrel%</th>
+                        <th onclick="sortTable(18)">Target Count</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
         </div>
         
-        <div class="stats-summary">
-            <h3>Quick Stats</h3>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-label">Total Pitchers</div>
-                    <div class="summary-value" id="totalPitchers">0</div>
+        <!-- Regression Candidates Tab -->
+        <div id="regression-content" class="tab-content">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box regression-risk"></div>
+                    <span>Regression Risk</span>
                 </div>
-                <div class="summary-item">
-                    <div class="summary-label">Most Targetable</div>
-                    <div class="summary-value" id="mostTargetable">-</div>
+                <div class="legend-item">
+                    <span class="confidence-badge confidence-high">High</span>
+                    <span>High Confidence</span>
                 </div>
-                <div class="summary-item">
-                    <div class="summary-label">Avg Target Metrics</div>
-                    <div class="summary-value" id="avgTargets">0</div>
+                <div class="legend-item">
+                    <span class="confidence-badge confidence-medium">Med</span>
+                    <span>Medium Confidence</span>
                 </div>
-                <div class="summary-item">
-                    <div class="summary-label">High ERA Count</div>
-                    <div class="summary-value" id="highERA">0</div>
+                <div class="legend-item">
+                    <span class="confidence-badge confidence-low">Low</span>
+                    <span>Low Confidence</span>
+                </div>
+            </div>
+            
+            <div class="stats-summary">
+                <h3>Regression Analysis</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">High Risk Pitchers</div>
+                        <div class="summary-value" id="highRiskPitchers">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Top Regression Risk</div>
+                        <div class="summary-value" id="topRegressionRisk">-</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Regression Score</div>
+                        <div class="summary-value" id="avgRegressionScore">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">ERA vs xERA Gaps</div>
+                        <div class="summary-value" id="eraGaps">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Min IP</label>
+                    <input type="number" id="minIPRegression" value="20" step="10">
+                </div>
+                <div class="filter-group">
+                    <label>Team</label>
+                    <select id="teamFilterRegression">
+                        <option value="">All Teams</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Min Regression Score</label>
+                    <input type="number" id="minRegressionScore" value="0" min="0" max="10" step="0.5">
+                </div>
+                <div class="filter-group">
+                    <label>Confidence Level</label>
+                    <select id="confidenceFilter">
+                        <option value="">All Levels</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+            </div>
+            
+            <table id="regressionTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortRegressionTable(0)">#</th>
+                        <th onclick="sortRegressionTable(1)">Name</th>
+                        <th onclick="sortRegressionTable(2)">Team</th>
+                        <th onclick="sortRegressionTable(3)">IP</th>
+                        <th onclick="sortRegressionTable(4)">Confidence</th>
+                        <th onclick="sortRegressionTable(5)">ERA</th>
+                        <th onclick="sortRegressionTable(6)">xERA</th>
+                        <th onclick="sortRegressionTable(7)">FIP</th>
+                        <th onclick="sortRegressionTable(8)">ERA-xERA</th>
+                        <th onclick="sortRegressionTable(9)">BABIP</th>
+                        <th onclick="sortRegressionTable(10)">K%</th>
+                        <th onclick="sortRegressionTable(11)">BB%</th>
+                        <th onclick="sortRegressionTable(12)">K-BB%</th>
+                        <th onclick="sortRegressionTable(13)">HR/FB%</th>
+                        <th onclick="sortRegressionTable(14)">Hard%</th>
+                        <th onclick="sortRegressionTable(15)">Barrel%</th>
+                        <th onclick="sortRegressionTable(16)">Regression Score</th>
+                    </tr>
+                </thead>
+                <tbody id="regressionTableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Methodology Tab -->
+        <div id="methodology-content" class="tab-content">
+            <div class="regression-explanation">
+                <h3>🎯 Stack Target Methodology</h3>
+                <p>Identifies pitchers with poor underlying metrics that suggest they're vulnerable to offensive production. Targets are based on thresholds that indicate below-average performance:</p>
+                <div class="regression-factors">
+                    <div class="factor-card">
+                        <div class="factor-title">Strikeout Indicators</div>
+                        <div class="factor-description">K% &lt; 20%, K/9 &lt; 7.0, K/BB &lt; 2.5 - Low strikeout rates indicate difficulty getting outs without contact</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Run Prevention</div>
+                        <div class="factor-description">ERA &gt; 4.5, xERA &gt; 4.5, FIP &gt; 4.5 - Multiple metrics showing poor run prevention</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Contact Quality</div>
+                        <div class="factor-description">Hard% &gt; 35%, Barrel% &gt; 10%, HR/9 &gt; 1.5 - Allowing hard contact and home runs</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Command Issues</div>
+                        <div class="factor-description">WHIP &gt; 1.35 - Consistently putting runners on base through hits and walks</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="regression-explanation">
+                <h3>📉 Regression Risk Methodology</h3>
+                <p>Identifies pitchers whose current ERA significantly outperforms their underlying metrics, suggesting they may be due for negative regression. Based on statistical analysis of predictive indicators:</p>
+                <div class="regression-factors">
+                    <div class="factor-card">
+                        <div class="factor-title">ERA vs Expected Metrics Gap</div>
+                        <div class="factor-description">Large gaps between ERA and xERA/FIP/xFIP suggest unsustainable performance. ERA more than 1.0 runs below expected metrics is a strong regression indicator.</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Batted Ball Luck (BABIP)</div>
+                        <div class="factor-description">BABIP significantly below league average (.290) suggests favorable luck on balls in play. BABIP &lt; .260 is often unsustainable.</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Skill Indicators (K-BB%)</div>
+                        <div class="factor-description">K-BB% &lt; 12% indicates lack of swing-and-miss stuff and command issues. Low K-BB% with good ERA suggests luck dependency.</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Home Run Indicators</div>
+                        <div class="factor-description">HR/FB% significantly above league average (10-11%) suggests HR suppression luck. Values &gt; 15% often regress toward mean.</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Contact Quality Metrics</div>
+                        <div class="factor-description">Hard Hit% and Barrel% above average with low ERA suggests defensive help or sequencing luck. Eventually hard contact finds holes.</div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-title">Confidence Scoring</div>
+                        <div class="factor-description">
+                            <strong>High:</strong> Multiple indicators + large ERA gaps<br>
+                            <strong>Medium:</strong> Some indicators + moderate gaps<br>
+                            <strong>Low:</strong> Few indicators or small sample size
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="filters">
-            <div class="filter-group">
-                <label>Min IP</label>
-                <input type="number" id="minIP" value="20" step="10">
-            </div>
-            <div class="filter-group">
-                <label>Team</label>
-                <select id="teamFilter">
-                    <option value="">All Teams</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Min Target Metrics</label>
-                <input type="number" id="minTargets" value="0" min="0" max="10">
-            </div>
-        </div>
-        
-        <table id="pitcherTable">
-            <thead>
-                <tr>
-                    <th onclick="sortTable(0)">#</th>
-                    <th onclick="sortTable(1)">Name</th>
-                    <th onclick="sortTable(2)">Team</th>
-                    <th onclick="sortTable(3)">IP</th>
-                    <th onclick="sortTable(4)">QS</th>
-                    <th onclick="sortTable(5)">K%</th>
-                    <th onclick="sortTable(6)">K/9</th>
-                    <th onclick="sortTable(7)">BB/9</th>
-                    <th onclick="sortTable(8)">K/BB</th>
-                    <th onclick="sortTable(9)">xERA</th>
-                    <th onclick="sortTable(10)">ERA</th>
-                    <th onclick="sortTable(11)">BB%</th>
-                    <th onclick="sortTable(12)">WHIP</th>
-                    <th onclick="sortTable(13)">BABIP</th>
-                    <th onclick="sortTable(14)">FIP</th>
-                    <th onclick="sortTable(15)">Hard%</th>
-                    <th onclick="sortTable(16)">HR/9</th>
-                    <th onclick="sortTable(17)">Barrel%</th>
-                    <th onclick="sortTable(18)">Target Count</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
     </div>
     
     <script>
@@ -394,8 +677,137 @@
             barrelPct: 10  // High Barrel% (above 10%)
         };
         
+        // Regression thresholds and league averages
+        const regressionThresholds = {
+            leagueBabip: 0.290,
+            lowBabipThreshold: 0.260,
+            highBabipThreshold: 0.320,
+            leagueHrFb: 11.0,
+            highHrFbThreshold: 15.0,
+            lowHrFbThreshold: 7.0,
+            minKbbPct: 12.0,
+            leagueHardPct: 31.0,
+            leagueBarrelPct: 7.5,
+            eraGapThreshold: 0.5,
+            significantEraGap: 1.0
+        };
+        
         let sortColumn = 18; // Default sort by target count
         let sortDirection = -1;
+        let regressionSortColumn = 16; // Default sort by regression score
+        let regressionSortDirection = -1;
+        
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-content').classList.add('active');
+            
+            // Add active class to selected tab
+            event.target.classList.add('active');
+            
+            // Render appropriate table
+            if (tabName === 'regression') {
+                renderRegressionTable();
+            } else if (tabName === 'stack') {
+                renderTable();
+            }
+        }
+        
+        // Calculate regression score and confidence
+        function calculateRegressionMetrics(pitcher) {
+            let regressionScore = 0;
+            let indicators = [];
+            
+            // ERA vs Expected metrics gap
+            const eraXeraGap = pitcher.era - pitcher.xera;
+            const eraFipGap = pitcher.era - pitcher.fip;
+            
+            if (eraXeraGap < -regressionThresholds.significantEraGap) {
+                regressionScore += 2.5;
+                indicators.push('Large ERA-xERA gap');
+            } else if (eraXeraGap < -regressionThresholds.eraGapThreshold) {
+                regressionScore += 1.5;
+                indicators.push('Moderate ERA-xERA gap');
+            }
+            
+            if (eraFipGap < -regressionThresholds.significantEraGap) {
+                regressionScore += 2.0;
+                indicators.push('Large ERA-FIP gap');
+            } else if (eraFipGap < -regressionThresholds.eraGapThreshold) {
+                regressionScore += 1.0;
+                indicators.push('Moderate ERA-FIP gap');
+            }
+            
+            // BABIP indicators
+            if (pitcher.babip < regressionThresholds.lowBabipThreshold) {
+                regressionScore += 2.0;
+                indicators.push('Very low BABIP');
+            } else if (pitcher.babip < regressionThresholds.leagueBabip - 0.020) {
+                regressionScore += 1.0;
+                indicators.push('Below average BABIP');
+            }
+            
+            // K-BB% indicators (lack of skill)
+            const kMinusBbPct = pitcher.kPct - pitcher.bbPct;
+            if (kMinusBbPct < regressionThresholds.minKbbPct && pitcher.era < 4.0) {
+                regressionScore += 1.5;
+                indicators.push('Low K-BB% with good ERA');
+            } else if (kMinusBbPct < regressionThresholds.minKbbPct) {
+                regressionScore += 0.5;
+                indicators.push('Low K-BB%');
+            }
+            
+            // HR/FB indicators
+            if (pitcher.hrFbPct && pitcher.hrFbPct > regressionThresholds.highHrFbThreshold) {
+                regressionScore += 1.5;
+                indicators.push('High HR/FB%');
+            } else if (pitcher.hrFbPct && pitcher.hrFbPct < regressionThresholds.lowHrFbThreshold && pitcher.era < 3.5) {
+                regressionScore += 1.0;
+                indicators.push('Unsustainably low HR/FB%');
+            }
+            
+            // Contact quality vs results mismatch
+            if (pitcher.hardPct > regressionThresholds.leagueHardPct + 3 && pitcher.era < 4.0) {
+                regressionScore += 1.0;
+                indicators.push('High Hard% with good ERA');
+            }
+            
+            if (pitcher.barrelPct > regressionThresholds.leagueBarrelPct + 2 && pitcher.era < 4.0) {
+                regressionScore += 1.0;
+                indicators.push('High Barrel% with good ERA');
+            }
+            
+            // Sample size adjustment
+            if (pitcher.ip < 30) {
+                regressionScore *= 0.7; // Reduce confidence for small samples
+            }
+            
+            // Determine confidence level
+            let confidence = 'low';
+            if (indicators.length >= 4 && regressionScore >= 6) {
+                confidence = 'high';
+            } else if (indicators.length >= 2 && regressionScore >= 3) {
+                confidence = 'medium';
+            }
+            
+            return {
+                score: Math.round(regressionScore * 10) / 10,
+                confidence: confidence,
+                indicators: indicators,
+                eraXeraGap: Math.round(eraXeraGap * 100) / 100,
+                kMinusBbPct: Math.round(kMinusBbPct * 10) / 10
+            };
+        }
         
         // Update FanGraphs link with today's date
         function updateFanGraphsLink() {
@@ -513,9 +925,16 @@
                         whip: parseFloat(parts[12]) || 0,
                         babip: parseFloat(parts[13]) || 0,
                         fip: parseFloat(parts[14]) || 0,
-                        // Skip some columns to get to the ones we need
+                        xfip: parseFloat(parts[15]) || 0,
+                        ldPct: parseFloat(parts[16]?.replace('%', '')) || 0,
+                        gbPct: parseFloat(parts[17]?.replace('%', '')) || 0,
+                        fbPct: parseFloat(parts[18]?.replace('%', '')) || 0,
                         hardPct: parseFloat(parts[19]?.replace('%', '')) || 0,
                         hr9: parseFloat(parts[20]) || 0,
+                        maxEV: parseFloat(parts[21]) || 0,
+                        events: parseInt(parts[22]) || 0,
+                        hrFbPct: parseFloat(parts[23]?.replace('%', '')) || 0,
+                        wpa: parseFloat(parts[24]) || 0,
                         barrelPct: parseFloat(parts[25]?.replace('%', '')) || 0
                     };
                     
@@ -527,8 +946,9 @@
             }
             
             if (pitcherData.length > 0) {
-                populateTeamFilter();
+                populateTeamFilters();
                 renderTable();
+                renderRegressionTable();
                 saveDataToLocalStorage();
             } else {
                 throw new Error('No valid data found');
@@ -585,7 +1005,7 @@
         }
         
         function formatValue(value, decimals = 2) {
-            if (value === null || value === undefined) return '-';
+            if (value === null || value === undefined || isNaN(value)) return '-';
             if (typeof value === 'number') {
                 return value.toFixed(decimals);
             }
@@ -613,23 +1033,35 @@
                     return value > targetThresholds.hr9 ? 'target' : (value < 0.8 ? 'good' : '');
                 case 'barrelPct':
                     return value > targetThresholds.barrelPct ? 'target' : (value < 6 ? 'good' : '');
+                case 'babip':
+                    return value < regressionThresholds.lowBabipThreshold ? 'regression-risk' : 
+                           (value > regressionThresholds.highBabipThreshold ? 'target' : '');
+                case 'eraGap':
+                    return value < -regressionThresholds.eraGapThreshold ? 'regression-risk' : '';
                 default:
                     return '';
             }
         }
         
-        function populateTeamFilter() {
+        function populateTeamFilters() {
             const teams = [...new Set(pitcherData.map(p => p.team))].sort();
             const teamFilter = document.getElementById('teamFilter');
+            const teamFilterRegression = document.getElementById('teamFilterRegression');
             
             // Clear existing options except "All Teams"
             teamFilter.innerHTML = '<option value="">All Teams</option>';
+            teamFilterRegression.innerHTML = '<option value="">All Teams</option>';
             
             teams.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team;
-                option.textContent = team;
-                teamFilter.appendChild(option);
+                const option1 = document.createElement('option');
+                option1.value = team;
+                option1.textContent = team;
+                teamFilter.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = team;
+                option2.textContent = team;
+                teamFilterRegression.appendChild(option2);
             });
         }
         
@@ -653,6 +1085,27 @@
             document.getElementById('mostTargetable').textContent = mostTargetable.name || '-';
         }
         
+        function updateRegressionStats() {
+            const filteredData = getRegressionFilteredData();
+            
+            const regressionMetrics = filteredData.map(p => calculateRegressionMetrics(p));
+            const highRiskPitchers = regressionMetrics.filter(m => m.confidence === 'high').length;
+            const avgRegressionScore = regressionMetrics.reduce((a, b) => a + b.score, 0) / regressionMetrics.length || 0;
+            const eraGaps = filteredData.filter(p => (p.era - p.xera) < -0.5).length;
+            
+            document.getElementById('highRiskPitchers').textContent = highRiskPitchers;
+            document.getElementById('avgRegressionScore').textContent = avgRegressionScore.toFixed(1);
+            document.getElementById('eraGaps').textContent = eraGaps;
+            
+            const topRegressionRisk = filteredData.reduce((best, pitcher) => {
+                const bestScore = calculateRegressionMetrics(best).score;
+                const currentScore = calculateRegressionMetrics(pitcher).score;
+                return currentScore > bestScore ? pitcher : best;
+            }, filteredData[0] || {});
+            
+            document.getElementById('topRegressionRisk').textContent = topRegressionRisk.name || '-';
+        }
+        
         function getFilteredData() {
             const minIP = parseFloat(document.getElementById('minIP').value) || 0;
             const teamFilter = document.getElementById('teamFilter').value;
@@ -662,6 +1115,24 @@
                 if (pitcher.ip < minIP) return false;
                 if (teamFilter && pitcher.team !== teamFilter) return false;
                 if (calculateTargetMetrics(pitcher) < minTargets) return false;
+                return true;
+            });
+        }
+        
+        function getRegressionFilteredData() {
+            const minIP = parseFloat(document.getElementById('minIPRegression').value) || 0;
+            const teamFilter = document.getElementById('teamFilterRegression').value;
+            const minRegressionScore = parseFloat(document.getElementById('minRegressionScore').value) || 0;
+            const confidenceFilter = document.getElementById('confidenceFilter').value;
+            
+            return pitcherData.filter(pitcher => {
+                if (pitcher.ip < minIP) return false;
+                if (teamFilter && pitcher.team !== teamFilter) return false;
+                
+                const regressionMetrics = calculateRegressionMetrics(pitcher);
+                if (regressionMetrics.score < minRegressionScore) return false;
+                if (confidenceFilter && regressionMetrics.confidence !== confidenceFilter) return false;
+                
                 return true;
             });
         }
@@ -722,7 +1193,7 @@
                     <td class="${getCellClass('era', pitcher.era)}">${formatValue(pitcher.era)}</td>
                     <td>${formatValue(pitcher.bbPct, 1)}%</td>
                     <td class="${getCellClass('whip', pitcher.whip)}">${formatValue(pitcher.whip)}</td>
-                    <td>${formatValue(pitcher.babip, 3)}</td>
+                    <td class="${getCellClass('babip', pitcher.babip)}">${formatValue(pitcher.babip, 3)}</td>
                     <td class="${getCellClass('fip', pitcher.fip)}">${formatValue(pitcher.fip)}</td>
                     <td class="${getCellClass('hardPct', pitcher.hardPct)}">${formatValue(pitcher.hardPct, 1)}%</td>
                     <td class="${getCellClass('hr9', pitcher.hr9)}">${formatValue(pitcher.hr9)}</td>
@@ -736,6 +1207,78 @@
             updateStats();
         }
         
+        function renderRegressionTable() {
+            const tbody = document.getElementById('regressionTableBody');
+            tbody.innerHTML = '';
+            
+            const filteredData = getRegressionFilteredData();
+            
+            // Sort data
+            const sortedData = [...filteredData].sort((a, b) => {
+                let aVal, bVal;
+                const aRegression = calculateRegressionMetrics(a);
+                const bRegression = calculateRegressionMetrics(b);
+                
+                switch(regressionSortColumn) {
+                    case 0: aVal = a.rank; bVal = b.rank; break;
+                    case 1: aVal = a.name; bVal = b.name; break;
+                    case 2: aVal = a.team; bVal = b.team; break;
+                    case 3: aVal = a.ip; bVal = b.ip; break;
+                    case 4: 
+                        const confidenceOrder = { high: 3, medium: 2, low: 1 };
+                        aVal = confidenceOrder[aRegression.confidence];
+                        bVal = confidenceOrder[bRegression.confidence];
+                        break;
+                    case 5: aVal = a.era; bVal = b.era; break;
+                    case 6: aVal = a.xera; bVal = b.xera; break;
+                    case 7: aVal = a.fip; bVal = b.fip; break;
+                    case 8: aVal = aRegression.eraXeraGap; bVal = bRegression.eraXeraGap; break;
+                    case 9: aVal = a.babip; bVal = b.babip; break;
+                    case 10: aVal = a.kPct; bVal = b.kPct; break;
+                    case 11: aVal = a.bbPct; bVal = b.bbPct; break;
+                    case 12: aVal = aRegression.kMinusBbPct; bVal = bRegression.kMinusBbPct; break;
+                    case 13: aVal = a.hrFbPct; bVal = b.hrFbPct; break;
+                    case 14: aVal = a.hardPct; bVal = b.hardPct; break;
+                    case 15: aVal = a.barrelPct; bVal = b.barrelPct; break;
+                    case 16: aVal = aRegression.score; bVal = bRegression.score; break;
+                }
+                
+                if (typeof aVal === 'string') {
+                    return regressionSortDirection * aVal.localeCompare(bVal);
+                }
+                return regressionSortDirection * (aVal - bVal);
+            });
+            
+            sortedData.forEach(pitcher => {
+                const regressionMetrics = calculateRegressionMetrics(pitcher);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${pitcher.rank}</td>
+                    <td class="name-cell">${pitcher.name}</td>
+                    <td class="team-cell">${pitcher.team}</td>
+                    <td>${formatValue(pitcher.ip, 1)}</td>
+                    <td><span class="confidence-badge confidence-${regressionMetrics.confidence}">${regressionMetrics.confidence}</span></td>
+                    <td class="${getCellClass('era', pitcher.era)}">${formatValue(pitcher.era)}</td>
+                    <td class="${getCellClass('xera', pitcher.xera)}">${formatValue(pitcher.xera)}</td>
+                    <td class="${getCellClass('fip', pitcher.fip)}">${formatValue(pitcher.fip)}</td>
+                    <td class="${getCellClass('eraGap', regressionMetrics.eraXeraGap)}">${formatValue(regressionMetrics.eraXeraGap)}</td>
+                    <td class="${getCellClass('babip', pitcher.babip)}">${formatValue(pitcher.babip, 3)}</td>
+                    <td class="${getCellClass('kPct', pitcher.kPct)}">${formatValue(pitcher.kPct, 1)}%</td>
+                    <td>${formatValue(pitcher.bbPct, 1)}%</td>
+                    <td>${formatValue(regressionMetrics.kMinusBbPct, 1)}%</td>
+                    <td>${formatValue(pitcher.hrFbPct, 1)}%</td>
+                    <td class="${getCellClass('hardPct', pitcher.hardPct)}">${formatValue(pitcher.hardPct, 1)}%</td>
+                    <td class="${getCellClass('barrelPct', pitcher.barrelPct)}">${formatValue(pitcher.barrelPct, 1)}%</td>
+                    <td><span class="regression-score">${formatValue(regressionMetrics.score, 1)}</span></td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            updateRegressionStats();
+        }
+        
         function sortTable(column) {
             if (sortColumn === column) {
                 sortDirection *= -1;
@@ -746,20 +1289,37 @@
             renderTable();
         }
         
+        function sortRegressionTable(column) {
+            if (regressionSortColumn === column) {
+                regressionSortDirection *= -1;
+            } else {
+                regressionSortColumn = column;
+                regressionSortDirection = column === 1 || column === 2 ? 1 : -1;
+            }
+            renderRegressionTable();
+        }
+        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateFanGraphsLink();
             
             // Try to load saved data
             if (loadDataFromLocalStorage() && pitcherData.length > 0) {
-                populateTeamFilter();
+                populateTeamFilters();
                 renderTable();
+                renderRegressionTable();
             }
             
-            // Event listeners
+            // Event listeners for stack tab
             document.getElementById('minIP').addEventListener('change', renderTable);
             document.getElementById('teamFilter').addEventListener('change', renderTable);
             document.getElementById('minTargets').addEventListener('change', renderTable);
+            
+            // Event listeners for regression tab
+            document.getElementById('minIPRegression').addEventListener('change', renderRegressionTable);
+            document.getElementById('teamFilterRegression').addEventListener('change', renderRegressionTable);
+            document.getElementById('minRegressionScore').addEventListener('change', renderRegressionTable);
+            document.getElementById('confidenceFilter').addEventListener('change', renderRegressionTable);
         });
         
         // Optional: Set up automatic daily updates (requires the page to be open)
